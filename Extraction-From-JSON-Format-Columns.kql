@@ -1,0 +1,13 @@
+SecurityAlert
+| extend d = parse_json(Entities)
+| mv-apply d on (project Recipient = tostring(d.Recipient), Sender = tostring(d.Sender), Urls = tostring(d.Urls), SenderIP = tostring(d.SenderIP))
+| project-reorder Recipient, Sender, SenderIP, Urls
+
+
+
+
+SecurityAlert
+| extend d = parse_json(Entities)
+| mv-apply d on (project Recipient = tostring(d.Recipient), Sender = tostring(d.Sender), Urls = tostring(d.Urls), SenderIP = tostring(d.SenderIP))
+| search Recipient  != ""
+| project-reorder Recipient, Sender, SenderIP, Urls
