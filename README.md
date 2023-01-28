@@ -1,2 +1,3 @@
 # Sentinel-KQL
-a
+
+This is a repository for documentation of KQL for Microsoft Sentinel
