@@ -1,0 +1,13 @@
+//Load GEOIP WatchList
+let GeoIPDB = _GetWatchlist("MMGeoIP");
+//Filter for Successful NetworkEvents
+let Connection = DeviceNetworkEvents
+| where RemoteIP <> ""
+| where ActionType == "ConnectionSuccess"
+| project Remote_IP = RemoteIP, Remote_Url = RemoteUrl;
+//Lookup Remote_IP IN GeoIPDB 
+Connection
+| evaluate ipv4_lookup(GeoIPDB, Remote_IP, network)
+| summarize count() by Country, Remote_Url
+| search Country == "Russia" or "China" or "North Korea" or "Belgium" or "Iran"
+| sort by count_
