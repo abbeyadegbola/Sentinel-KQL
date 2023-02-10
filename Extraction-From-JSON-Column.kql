@@ -1,3 +1,4 @@
+#To extract each entity from a json-type 'Entities' column by splitting the key:value pairs for all rows.
 SecurityAlert
 | extend d = parse_json(Entities)
 | mv-apply d on (project Recipient = tostring(d.Recipient), Sender = tostring(d.Sender), Urls = tostring(d.Urls), SenderIP = tostring(d.SenderIP))
@@ -5,9 +6,20 @@ SecurityAlert
 
 
 
-
+#To extract each entity from a json-type 'Entities' column by splitting the key:value pairs (This removes blank recipients)
 SecurityAlert
 | extend d = parse_json(Entities)
 | mv-apply d on (project Recipient = tostring(d.Recipient), Sender = tostring(d.Sender), Urls = tostring(d.Urls), SenderIP = tostring(d.SenderIP))
 | search Recipient  != ""
 | project-reorder Recipient, Sender, SenderIP, Urls
+
+
+#To extract each '$id' from a json-type 'Entities' column. Requires calling the exact SystermAlertId as shown in the last line.
+let GetAlertRelatedEntities = (v_SecurityAlert_SystemAlertId: string) {
+    SecurityAlert
+    | where SystemAlertId == v_SecurityAlert_SystemAlertId
+    | project entities = todynamic(Entities)
+    | mv-expand entities
+    | project-rename entity=entities
+};
+GetAlertRelatedEntities(@'6eaab625-5a94-e568-08e9-27ee310a9332')
