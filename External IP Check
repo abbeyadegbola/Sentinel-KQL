@@ -1,0 +1,5 @@
+#To check if outbound external IP matches with IP in a Threat Intel Watchlist
+DeviceNetworkEvents
+| lookup kind=inner _GetWatchlist('KillNet')
+ on $left.RemoteIP == $right.SearchKey
+| project RemoteIP, DeviceName
