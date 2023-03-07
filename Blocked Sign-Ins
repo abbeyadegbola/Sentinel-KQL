@@ -1,0 +1,4 @@
+let Reasons = dynamic(['Sign-in was blocked because it came from an IP address with malicious activity.', 'Invalid Username or password or Invalid on-premise username or password.', 'Account is locked because user tried to sign in too many times with an incorrect user ID or password.']);
+SigninLogs
+| where ResultDescription in (Reasons)
+| summarize count() by UserDisplayName, ResultDescription, IPAddress, Location, AppDisplayName
