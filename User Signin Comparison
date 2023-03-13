@@ -1,0 +1,10 @@
+SigninLogs
+| where Identity contains "Janet Jackson" and ResultDescription contains "Sign-in was blocked"
+| project TimeGenerated, IPAddress, Identity, ResultDescription, Resource
+| join kind = inner (
+    SigninLogs
+    | where Identity contains "Ade John" and ResultDescription contains "Sign-in was blocked"
+    | project TimeGenerated, IPAddress, Identity, ResultDescription, Resource
+) on IPAddress
+| summarize count() by IPAddress, Identity, Identity1
+| sort by count_
