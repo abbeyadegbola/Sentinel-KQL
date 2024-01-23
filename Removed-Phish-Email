@@ -1,0 +1,7 @@
+//This query searches for phishing email removed by Defender for Office365, seperates the entities and project appropriate entities
+SecurityAlert
+| where DisplayName contains "Email messages removed" or DisplayName contains "Email messages containing" or  DisplayName contains "Email reported by"
+| extend d = parse_json(Entities)
+| mv-apply d on (project Recipient = tostring(d.Recipient), Sender = tostring(d.Sender), Urls = tostring(d.Urls), SenderIP = tostring(d.SenderIP), Files = tostring(d.Files))
+| search Recipient  != ""
+| project-reorder TimeGenerated, Recipient, Sender, SenderIP, Urls, Files
