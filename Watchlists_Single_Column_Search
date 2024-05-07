@@ -1,0 +1,5 @@
+//To use a watchlists column (searchkey) in the corresponding Sentinel table (e.g. DeviceNetworkEvents) column
+DeviceNetworkEvents
+  | lookup kind=inner _GetWatchlist('Lactrodectus') 
+   on $left.RemoteIP == $right.SearchKey
+
