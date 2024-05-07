@@ -1,0 +1,9 @@
+//To search for multiple columns of a particular watchlist in a table (e.g DeviceNetworkEvents) using the corresponding column types
+let URL = (_GetWatchlist('Lactrodectus')
+    | project URLs
+    | where URLs != "");
+let IP = (_GetWatchlist('Lactrodectus')
+    | project IP_Addresses
+    | where IP_Addresses != "");
+DeviceNetworkEvents
+| where RemoteIP in (IP) or RemoteUrl in (URL);
