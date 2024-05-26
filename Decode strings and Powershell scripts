@@ -1,0 +1,15 @@
+//Simple query to decode any base64 encoded string
+let YourEncodedBase64Command = "SGV5IHRoZXJlISBOb3cgYWRkIHlvdXIgbWFsY2lvdXMgcGF5bG9hZCBpbiBoZXJlIQ==";
+print base64_decode_tostring(YourEncodedBase64Command)
+
+//Extraction and decoding of base64 encoded Powershell scripts
+let EncodedList = dynamic(['-encodedcommand', '-enc', '-e']);
+DeviceProcessEvents
+| where ProcessCommandLine contains "powershell" or InitiatingProcessCommandLine contains "powershell"
+| where ProcessCommandLine has_any (EncodedList) or InitiatingProcessCommandLine has_any (EncodedList)
+| extend base64String = extract(@'\s+([A-Za-z0-9+/]{20}\S+$)', 1, ProcessCommandLine)
+| extend DecodedCommandLine = base64_decode_tostring(base64String)
+| where not(isempty(base64String) and isempty(DecodedCommandLine))
+| project ProcessCommandLine, DecodedCommandLine
+
+
