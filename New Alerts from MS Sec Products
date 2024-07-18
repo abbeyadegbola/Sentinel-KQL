@@ -1,0 +1,14 @@
+//This KQL detects Sentinel alerts from MS Security Products (Defender, Entra ID Protection etc) that are new to the environment
+
+SecurityAlert
+| where TimeGenerated > ago(180d) and TimeGenerated < ago(7d)
+// Exclude alerts from Sentinel itself
+| where ProviderName != "ASI Scheduled Alerts"  //exclude alerts from Sentinel's scheduled rules. 
+| distinct AlertName
+| join kind=rightanti (
+    SecurityAlert
+    | where TimeGenerated > ago(7d)
+    | where ProviderName != "ASI Scheduled Alerts"
+    | summarize NewAlertCount=count()by AlertName, ProviderName, ProductName)
+    on AlertName
+| sort by NewAlertCount desc 
