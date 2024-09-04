@@ -1,0 +1,17 @@
+#The query helps monitor SSPR activity for admin accounts. The query frequency can be adjusted to suit a preferred time range.
+
+let queryperiod = 30d;
+let queryfrequency = 1h;
+let PrivilegeUsers = (
+    IdentityInfo
+    | where TimeGenerated > ago(queryperiod)
+    | mv-expand AssignedRoles
+    | where AssignedRoles matches regex 'Admin'
+    | summarize by tolower(AccountUPN));
+AuditLogs
+| where TimeGenerated > ago(queryfrequency)
+| where ResultDescription == "User started self-service password reset operation."
+| extend AccountUPN = tolower(InitiatedBy.user.userPrincipalName)
+| extend IPAdress = InitiatedBy.user.ipAddress
+| where AccountUPN in (PrivilegeUsers)
+| project-reorder TimeGenerated, AccountUPN, IPAdress, Result
