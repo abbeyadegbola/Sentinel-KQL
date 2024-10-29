@@ -1,0 +1,24 @@
+// Define warning and critical thresholds
+let warningThresholdDays = 3;
+let criticalThresholdDays = 7;
+union withsource = SentinelTableName *
+| where TimeGenerated > ago(14d)
+| summarize LastIngestionTime = max(TimeGenerated) by SentinelTableName
+| extend DaysSinceLastIngestion = datetime_diff('day', now(), LastIngestionTime)
+| extend Status = case(
+    DaysSinceLastIngestion > criticalThresholdDays, "🔴 Critical: Ingestion Delayed",
+    DaysSinceLastIngestion > warningThresholdDays, "🟡 Warning: Needs Attention",
+    DaysSinceLastIngestion == 0, "🟢 Up to Date",
+    "🟡 Acceptable: Recently Ingested"
+)
+| sort by DaysSinceLastIngestion desc
+
+
+// This can be used for an analytic rule to monitor specific tables. It will trigger alert if no of days since last ingestion is greater than 1.
+union withsource = SentinelTableName * 
+| where TimeGenerated > ago(14d)
+| where SentinelTableName in ("SigninLogs", "DeviceNetworkEvents", "DeviceFileEvents") // Added line to filter for specific tables
+| summarize LastIngestionTime = max(TimeGenerated) by SentinelTableName
+| extend DaysSinceLastIngestion = datetime_diff('day', now(), LastIngestionTime)
+| where DaysSinceLastIngestion > 0
+| sort by DaysSinceLastIngestion desc
