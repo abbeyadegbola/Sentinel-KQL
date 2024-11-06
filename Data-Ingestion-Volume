@@ -1,0 +1,7 @@
+// List tables with data ingestion volume within a specified time frame
+Usage
+| where TimeGenerated >= ago(30d) // Adjust the time frame as needed
+| where IsBillable == true       // Only billable tables (active sources), It can be removed to included unbillable tables as well
+| summarize TotalDataIngestedMB = sum(Quantity) by DataType
+| project TableName = DataType, TotalDataIngestedMB
+| order by TotalDataIngestedMB desc
