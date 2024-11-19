@@ -1,0 +1,12 @@
+// To create a custom table for a list of users, then join the table with the DeviceNetworkEvents table inorder to query the users network logs for the defined parameters
+let EngineerList = datatable (name: string)
+[
+    "abiola.dele",
+    "tunde.yemi",
+    "andre.boateng",
+];
+EngineerList
+| extend EngineerName = name
+| join kind=inner DeviceNetworkEvents on $left.EngineerName == $right.InitiatingProcessAccountName
+| where RemotePort in ("3389", "445", "22")
+| project TimeGenerated, InitiatingProcessAccountName, LocalIP, RemoteIP, RemotePort, RemoteUrl, ActionType, InitiatingProcessFileName

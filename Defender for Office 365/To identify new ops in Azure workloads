@@ -1,0 +1,22 @@
+//The provided KQL (Kusto Query Language) queries are designed to identify new Entra ID and Office operations within the past 7 days that were not present in the previous 90-day period.
+
+AuditLogs
+| where TimeGenerated > ago(90d) and TimeGenerated < ago(7d)
+| distinct OperationName
+| join kind=rightanti (
+    AuditLogs
+    | where TimeGenerated > ago(7d)
+    | summarize NewAzureADAuditOperations=count()by OperationName, Category)
+    on OperationName
+| sort by NewAzureADAuditOperations desc 
+
+
+OfficeActivity
+| where TimeGenerated > ago(90d) and TimeGenerated < ago(7d)
+| distinct Operation
+| join kind=rightanti (
+    OfficeActivity
+    | where TimeGenerated > ago(7d)
+    | summarize NewOfficeOperations=count()by Operation, OfficeWorkload)
+    on Operation
+| sort by NewOfficeOperations desc 
