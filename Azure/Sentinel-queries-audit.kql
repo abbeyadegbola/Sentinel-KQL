@@ -1,0 +1,6 @@
+//To find out the last user(s) to edit a particular analytics rule.
+//Replacing xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx with the rule ID of the rule you want to check.
+AzureActivity
+| where OperationNameValue startswith "MICROSOFT.SECURITYINSIGHTS/ALERTRULES/WRITE"
+| where Properties contains "alertRules/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+| project Caller , TimeGenerated , Properties
