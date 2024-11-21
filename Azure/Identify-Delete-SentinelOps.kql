@@ -1,0 +1,7 @@
+//Lists all the delete operations performed in your Microsoft Sentinel workspace. Time range needs to be set
+//https://learn.microsoft.com/en-us/azure/sentinel/audit-sentinel-data
+AzureActivity
+| where OperationNameValue contains "SecurityInsights"
+| where OperationName contains "Delete"
+| where ActivityStatusValue contains "Succeeded"
+| project TimeGenerated, Caller, OperationName
