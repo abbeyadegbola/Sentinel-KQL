@@ -1,0 +1,19 @@
+// KQL Query: Malicious URL Click Correlation
+//This query extracts malicious URLs from security alerts ("Email messages containing malicious Url" incs) and correlates them with user clicks recorded in UrlClickEvents.
+// It helps in identifying which users interacted with potentially harmful links (even though the email has been removed by Defender) and when they clicked them.
+
+SecurityAlert
+| where DisplayName contains "Email messages containing malicious Url"
+| extend d = parse_json(Entities)
+| mv-apply d on (
+    project Mal_Url = d.Urls
+)
+| where Mal_Url != ""
+| mv-expand Mal_Url
+| extend Mal_Url = tostring(Mal_Url)
+| join kind=inner (
+    UrlClickEvents
+    | project Url, ClickTime = TimeGenerated, AccountUpn
+) on $left.Mal_Url == $right.Url
+| project AlertTime = TimeGenerated, Url, ClickTime, AccountUpn
+| summarize by AccountUpn, ClickTime, Url
