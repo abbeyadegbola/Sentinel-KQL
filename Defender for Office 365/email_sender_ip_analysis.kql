@@ -1,0 +1,14 @@
+// KQL Query: Email Sender IP Analysis
+// This query extracts and counts sender IP addresses from security alerts where the alert name contains "Email messages".
+// The query is targeted at general "email removed after delivery" type incidents on Sentinel
+// It helps in identifying IPs that frequently appear in alerts, which can be useful for threat intelligence and investigation.
+
+SecurityAlert
+| where AlertName contains "Email messages"
+| extend d = parse_json(Entities)
+| mv-apply d on (
+    project IP = tostring(d.SenderIP)
+)
+| where IP != ""
+| summarize SenderIP = count() by IP
+| order by SenderIP desc
