@@ -1,0 +1,18 @@
+// KQL Query: Malicious File Hash Analysis
+// This query extracts and counts SHA-256 file hashes from security alerts where the alert name contains "Email messages containing malicious file".
+// It helps in identifying frequently observed malicious files, which is useful for malware analysis and threat intelligence.
+
+SecurityAlert
+| where AlertName contains "Email messages containing malicious file"
+| extend d = parse_json(Entities)
+| mv-apply d on (
+    project Hash = tostring(d.FileHashes)
+)
+| search Hash != ""
+| extend b = parse_json(Hash)
+| mv-apply b on (
+    project Hash_SHA256 = tostring(b.Value)
+)
+| project-reorder Hash_SHA256
+| summarize count() by Hash_SHA256
+| order by count_ desc
