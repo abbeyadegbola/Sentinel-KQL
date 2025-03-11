@@ -1,0 +1,14 @@
+// KQL Query: Malicious URL Analysis
+// This query extracts and counts malicious URLs from security alerts where the alert name contains "Email messages containing malicious URL removed".
+// It helps in identifying frequently occurring malicious URLs, which is useful for threat intelligence and proactive security measures.
+
+SecurityAlert
+| where DisplayName contains "Email messages containing malicious URL removed"
+| extend d = parse_json(Entities)
+| mv-apply d on (
+    project Url = d.Urls
+)
+| where Url != ""
+| mv-expand Url
+| summarize count() by tostring(Url)
+| order by count_ desc
