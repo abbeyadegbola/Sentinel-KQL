@@ -1,0 +1,14 @@
+// KQL Query: Email Sender Analysis
+// This query extracts and counts email senders from security alerts where the alert name contains "Email messages". 
+//This is targetted at the general "email messages removed after delivery" type incident on Sentinel 
+// It helps in identifying senders that frequently appear in alerts, which can be useful for threat hunting and investigation.
+
+SecurityAlert
+| where AlertName contains "Email messages"
+| extend d = parse_json(Entities)
+| mv-apply d on (
+    project Sender = tostring(d.Sender)
+)
+| where Sender != ""
+| summarize EmailSender = count() by Sender
+| order by EmailSender desc
