@@ -3,17 +3,28 @@
 // It helps in identifying which users interacted with potentially harmful links (even though the email has been removed by Defender) and when they clicked them.
 
 SecurityAlert
+// Look for security alerts with a display name indicating malicious URLs in emails.
 | where DisplayName contains "Email messages containing malicious Url"
-| extend d = parse_json(Entities)
-| mv-apply d on (
-    project Mal_Url = d.Urls
+// Parse the 'Entities' column, which is a JSON array, to extract URL information.
+| extend ParsedEntities = parse_json(Entities)
+// Apply the mv-apply operator to iterate through the parsed entities and extract the 'Urls' field.
+| mv-apply ParsedEntities on (
+    project MaliciousUrl = ParsedEntities.Urls
 )
-| where Mal_Url != ""
-| mv-expand Mal_Url
-| extend Mal_Url = tostring(Mal_Url)
+// Filter out any records where the extracted 'MaliciousUrl' is empty.
+| where isnotempty(MaliciousUrl)
+// Expand the 'MaliciousUrl' multi-value field into individual rows.
+| mv-expand MaliciousUrl
+// Convert the 'MaliciousUrl' to a string data type.
+| extend MaliciousUrl = tostring(MaliciousUrl)
+// Perform an inner join with the 'UrlClickEvents' table to find user clicks on URLs.
 | join kind=inner (
     UrlClickEvents
+    // Select the 'Url', 'TimeGenerated' (renamed to 'ClickTime'), and 'AccountUpn' columns
+    // from the 'UrlClickEvents' table.
     | project Url, ClickTime = TimeGenerated, AccountUpn
-) on $left.Mal_Url == $right.Url
+) on $left.MaliciousUrl == $right.Url
+// Project the relevant columns for the alert output.
 | project AlertTime = TimeGenerated, Url, ClickTime, AccountUpn
+// Summarize the results to provide unique combinations of user, click time, and URL.
 | summarize by AccountUpn, ClickTime, Url
